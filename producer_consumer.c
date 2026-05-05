@@ -24,9 +24,11 @@ void* producer(void* arg) //void producer(void)
         return NULL;
     }
 
+    int item; //int item;
+
     while(1) // while(TRUE)
     {
-        int item = fgetc(file); //item = produce_item();
+        item = fgetc(file); //item = produce_item();
         if(item == EOF)
         {
             break;
@@ -40,12 +42,14 @@ void* producer(void* arg) //void producer(void)
         in = (in + 1) % bufferSize;
 
         count++; //count = count + 1;
-        printf("Producer Inserted: %c\n", item);
 
         if(count == 1) //if (count == 1) wakeup(consumer);
         {
             pthread_cond_signal(&cConsumer);
         }
+
+        printf("Producer Inserted: %c\n", item);
+        
         pthread_mutex_unlock(&mutex);
         usleep(50000); 
     }
@@ -60,6 +64,8 @@ void* producer(void* arg) //void producer(void)
 
 void* consumer(void* arg) 
 {
+    int item; //int item;
+
     while(1) //while(TRUE)
     {
         pthread_mutex_lock(&mutex);
@@ -72,16 +78,19 @@ void* consumer(void* arg)
             pthread_mutex_unlock(&mutex);
             break;
         }
-        char item = buffer[out]; //item = remove_item();
+
+        item = buffer[out]; //item = remove_item();
         out = (out + 1) % bufferSize;
 
         count--; //count = count - 1;
-        printf("Consumer Removed: %c\n", item);
 
         if(count == bufferSize - 1) // if (count == N - 1) wakeup(producer);
         {
             pthread_cond_signal(&cProducer);
         }
+
+        printf("Consumer Removed: %c\n", item); //consume_item(item);
+
         pthread_mutex_unlock(&mutex);
         usleep(150000); 
     }
