@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include <unistd.h>
 
-//Sleep and Wakeup - Producer-Consumer Problem
+//Sleep and Wakeup - Producer-Consumer Problem (from class slides)
 
 #define bufferSize 5 //buffer (queue) size //define N 100
 
@@ -49,7 +49,7 @@ void* producer(void* arg) //void producer(void)
         }
 
         printf("Producer Inserted: %c\n", item);
-        
+
         pthread_mutex_unlock(&mutex);
         usleep(50000); 
     }
