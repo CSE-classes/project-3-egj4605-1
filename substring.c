@@ -29,7 +29,7 @@ int readf(FILE *fp)
 	s1=fgets(s1, MAX, fp);
 	s2=fgets(s2, MAX, fp);
 	n1=strlen(s1);  /*length of s1*/
-	n2=strlen(s2)-1; /*length of s2*/
+	n2=strlen(s2); /*length of s2*/ // EDIT: fixed -1 from original code
 	if(s1==NULL || s2==NULL || n1<n2)  /*when error exit*/
 		return -1;
 }
@@ -63,14 +63,3 @@ int main(int argc, char *argv[])
  	printf("The number of substrings is: %d\n", count);
 	return 1;
 }
-
-
-
-
-
-
-
-
-
-
-

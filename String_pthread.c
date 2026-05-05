@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 	pthread_mutex_init(&total_lock,NULL);
 	readf(fp);
 	for(i=0;i<NUM_THREADS;i++){
-		rc=pthread_create(&threads[i],NULL,sub_string,(void *)i);
+		rc=pthread_create(&threads[i],NULL,sub_string,(void *)(long)i);
 		if (rc){
 			printf("ERROR: return error from pthread_create() is %d\n", rc);
 			exit(-1);
@@ -61,23 +61,32 @@ int readf(FILE *fp)
 	}
 	/*read s1 s2 from the file*/
 	s1=fgets(s1, MAX, fp);
-	s2=fgets(s2, MAX, fp);
+    s2=fgets(s2, MAX, fp);
 	n1=strlen(s1);  /*length of s1*/
-	n2=strlen(s2)-1; /*length of s2*/
+	n2=strlen(s2); /*length of s2*/ // EDIT: fixed -1 from original code
 	nlocal=n1/NUM_THREADS;  /*data length held by process*/
 	if(s1==NULL || s2==NULL ||n1<n2)  /*when error exit*/
 		return -1;
 }
-
-void *sub_string(void *threadid) 	/*each process searches in the string with the step of nprocs until it reach or beyond*/ 
+void *sub_string(void *threadid) 	
+/*each process searches in the string with the step of nprocs until it reach or beyond*/ 
 	/*the (n1-n2)th char which is the last possible beginning of the substring*/
 {
+	long tdid = (long)threadid;
+	int start = tdid * nlocal; 
+    int end = start + nlocal; 
+    int occurenceCount = 0;
 
+	for (int i = start; i < end; i++) 
+	{
+        if (strncmp(&s1[i], s2, n2) == 0) 
+		{
+            occurenceCount++;
+        }
+    }
+	
+    pthread_mutex_lock(&total_lock);
+    total += occurenceCount;
+    pthread_mutex_unlock(&total_lock);
+	pthread_exit(NULL);
 }
-
-
-
-
-
-
-
