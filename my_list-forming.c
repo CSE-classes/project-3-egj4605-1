@@ -1,5 +1,5 @@
 /*
-  list-forming.c: 
+  my_list-forming.c: 
   Each thread generates a data node, attaches it to a global list. This is reapeated for K times.
   There are num_threads threads. The value of "num_threads" is input by the student.
 */
@@ -21,11 +21,11 @@ struct Node
 
 struct list
 {
-     struct Node * header;
-     struct Node * tail;
+    struct Node * header;
+    struct Node * tail;
 };
 
-pthread_mutex_t    mutex_lock;
+pthread_mutex_t mutex_lock;
 
 struct list *List;
 
@@ -58,38 +58,48 @@ void * producer_thread( void *arg)
 {
     bind_thread_to_cpu(*((int*)arg));//bind this thread to a CPU
 
-    struct Node * ptr, tmp;
+    struct Node * ptr;
+    struct Node * localHead = NULL;
+    struct Node * localTail = NULL;
+    //struct list * localtail; 
     int counter = 0;  
-
+    int countLocal = 0;
     /* generate and attach K nodes to the global list */
     while( counter  < K )
     {
         ptr = generate_data_node();
 
         if( NULL != ptr )
-        {
-            while(1)
+        {    
+            ptr->data  = 1;//generate data
+            /* attache the generated node to the global list */
+            if( localHead == NULL )
             {
-		/* access the critical region and add a node to the global list */
-                if( !pthread_mutex_trylock(&mutex_lock) )
-                {
-                    ptr->data  = 1;//generate data
-		    /* attache the generated node to the global list */
-                    if( List->header == NULL )
-                    {
-                        List->header = List->tail = ptr;
-                    }
-                    else
-                    {
-                        List->tail->next = ptr;
-                        List->tail = ptr;
-                    }                    
-                    pthread_mutex_unlock(&mutex_lock);
-                    break;
-                }
-            }           
+                localHead = localTail = ptr;
+            }
+            else
+            {
+                localTail->next = ptr;
+                localTail = ptr;
+            }                    
         }
         ++counter;
+    }
+    /* access the critical region and add a node to the global list */
+    if( !pthread_mutex_lock(&mutex_lock) )
+    {
+        /* attache the generated node to the global list */
+        if( List->header == NULL )
+        {
+            List->header = localHead;
+            List->tail = localTail;
+        }
+        else
+        {
+            List->tail->next = localHead;
+            List->tail = localTail;
+        }                    
+        pthread_mutex_unlock(&mutex_lock);
     }
 }
 
